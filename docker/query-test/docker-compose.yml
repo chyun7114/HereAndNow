@@ -1,0 +1,42 @@
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    container_name: hereandnow-query-postgis
+    environment:
+      POSTGRES_DB: hereandnow_query
+      POSTGRES_USER: hereandnow
+      POSTGRES_PASSWORD: hereandnow
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hereandnow -d hereandnow_query"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - hereandnow_query_pgdata:/var/lib/postgresql/data
+      - ../../:/workspace:ro
+
+  redis:
+    image: redis:7.0.8-alpine
+    container_name: hereandnow-query-redis
+    command:
+      [
+        "redis-server",
+        "--bind",
+        "0.0.0.0",
+        "--protected-mode",
+        "no",
+        "--appendonly",
+        "no",
+      ]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  hereandnow_query_pgdata:
