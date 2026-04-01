@@ -21,11 +21,17 @@ $MigrationFiles = @(
 function Invoke-Psql([string]$SqlCommand) {
     docker compose -f $ComposeFile exec -T postgis `
         psql -U $DbUser -d $DbName -v ON_ERROR_STOP=1 -c $SqlCommand | Out-Host
+    if ($LASTEXITCODE -ne 0) {
+        throw "psql 실행 실패: $SqlCommand"
+    }
 }
 
 function Invoke-PsqlFile([string]$FilePath) {
     docker compose -f $ComposeFile exec -T postgis `
         psql -U $DbUser -d $DbName -v ON_ERROR_STOP=1 -f $FilePath | Out-Host
+    if ($LASTEXITCODE -ne 0) {
+        throw "psql 파일 실행 실패: $FilePath"
+    }
 }
 
 function Wait-PostgisReady {
@@ -44,6 +50,11 @@ function Wait-PostgisReady {
 
 function Apply-Schema {
     Write-Host "[2/4] 스키마/마이그레이션 적용 중..."
+
+    Invoke-Psql "DROP SCHEMA IF EXISTS public CASCADE;"
+    Invoke-Psql "CREATE SCHEMA public;"
+    Invoke-Psql "CREATE EXTENSION IF NOT EXISTS postgis;"
+
     foreach ($file in $MigrationFiles) {
         Write-Host " - applying: $file"
         Invoke-PsqlFile $file
@@ -60,6 +71,9 @@ function Seed-Dataset([string]$Name, [int]$PlaceCount, [int]$CourseCount) {
         -v lat_spread=0.35 `
         -v lon_spread=0.45 `
         -f /workspace/scripts/query-test/seed_query_dataset.sql | Out-Host
+    if ($LASTEXITCODE -ne 0) {
+        throw "데이터셋 생성 실패: $Name"
+    }
 }
 
 Write-Host "[0/4] 실행 컨테이너 기동 중..."
