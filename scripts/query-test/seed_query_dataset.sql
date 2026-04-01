@@ -167,6 +167,30 @@ SELECT
 FROM tmp_place_rows p
 JOIN tmp_course_slots s ON s.rn = p.rn;
 
+WITH comment_count_per_course AS (
+    SELECT
+        c.id AS course_id,
+        CASE
+            WHEN random() < 0.20 THEN 0
+            WHEN random() < 0.55 THEN 1 + floor(random() * 3)::int
+            WHEN random() < 0.85 THEN 4 + floor(random() * 5)::int
+            ELSE 9 + floor(random() * 12)::int
+        END AS comment_count
+    FROM course c
+    WHERE c.course_title LIKE :'dataset_prefix' || '-course-%'
+)
+INSERT INTO course_comment (
+    content,
+    course_id,
+    member_id
+)
+SELECT
+    'query test course comment #' || cc.course_id || '-' || gs.comment_idx,
+    cc.course_id,
+    (SELECT id FROM member WHERE email = 'query-test-user@example.com')
+FROM comment_count_per_course cc
+CROSS JOIN LATERAL generate_series(1, cc.comment_count) AS gs(comment_idx);
+
 UPDATE place pl
 SET pin_count = x.pin_count
 FROM (
@@ -188,5 +212,5 @@ ANALYZE course_comment;
 SELECT
     (SELECT count(*) FROM place) AS place_count,
     (SELECT count(*) FROM pin) AS pin_count,
-    (SELECT count(*) FROM course) AS course_count;
-
+    (SELECT count(*) FROM course) AS course_count,
+    (SELECT count(*) FROM course_comment) AS course_comment_count;

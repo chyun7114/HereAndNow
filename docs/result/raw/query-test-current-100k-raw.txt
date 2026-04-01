@@ -1,0 +1,75 @@
+﻿=== CURRENT_QUERY_PLACE_10K ===
+                                                                                                                             QUERY PLAN                                                                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on place p  (cost=91.08..173.25 rows=1 width=8) (actual time=9.306..12.208 rows=476 loops=1)
+   Recheck Cond: ((location)::geometry && '0103000020E6100000010000000500000015E3AB83A1C05F40C90ADEAF0ABE424015E3AB83A1C05F400F4A77B883C1424099193B0CCEC25F400F4A77B883C1424099193B0CCEC25F40C90ADEAF0ABE424015E3AB83A1C05F40C90ADEAF0ABE4240'::geometry)
+   Filter: st_dwithin(location, '0101000020E6100000577EF3C7B7C15F406CAA2A34C7BF4240'::geography, '1500'::double precision, true)
+   Rows Removed by Filter: 103
+   Heap Blocks: exact=1085
+   Buffers: shared hit=1194 read=45 dirtied=4
+   ->  BitmapAnd  (cost=91.08..91.08 rows=5 width=0) (actual time=0.724..0.725 rows=0 loops=1)
+         Buffers: shared hit=54
+         ->  Bitmap Index Scan on idx_place_location_geom_gist  (cost=0.00..32.73 rows=593 width=0) (actual time=0.289..0.289 rows=1190 loops=1)
+               Index Cond: ((location)::geometry && '0103000020E6100000010000000500000015E3AB83A1C05F40C90ADEAF0ABE424015E3AB83A1C05F400F4A77B883C1424099193B0CCEC25F400F4A77B883C1424099193B0CCEC25F40C90ADEAF0ABE424015E3AB83A1C05F40C90ADEAF0ABE4240'::geometry)
+               Buffers: shared hit=15
+         ->  Bitmap Index Scan on idx_place_location_gist  (cost=0.00..58.11 rows=760 width=0) (actual time=0.416..0.416 rows=1586 loops=1)
+               Index Cond: (location && _st_expand('0101000020E6100000577EF3C7B7C15F406CAA2A34C7BF4240'::geography, '1500'::double precision))
+               Buffers: shared hit=39
+ Planning:
+   Buffers: shared hit=232 read=25 dirtied=4
+ Planning Time: 8.910 ms
+ Execution Time: 12.380 ms
+(18 rows)
+
+=== CURRENT_QUERY_COURSE_REVIEWS_10K ===
+                                                                                                                                               QUERY PLAN                                                                                                                                               
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=190.47..190.47 rows=1 width=16) (actual time=8.191..8.196 rows=20 loops=1)
+   Buffers: shared hit=5318
+   ->  Sort  (cost=190.47..190.47 rows=1 width=16) (actual time=8.190..8.193 rows=20 loops=1)
+         Sort Key: (COALESCE((count(*)), '0'::bigint)) DESC, c.id DESC
+         Sort Method: top-N heapsort  Memory: 26kB
+         Buffers: shared hit=5318
+         ->  Nested Loop Left Join  (cost=190.26..190.46 rows=1 width=16) (actual time=4.772..8.113 rows=473 loops=1)
+               Buffers: shared hit=5315
+               ->  Nested Loop  (cost=181.86..182.04 rows=1 width=8) (actual time=4.725..6.099 rows=473 loops=1)
+                     Buffers: shared hit=3986
+                     ->  HashAggregate  (cost=181.58..181.59 rows=1 width=8) (actual time=4.707..4.769 rows=473 loops=1)
+                           Group Key: p.course_id
+                           Batches: 1  Memory Usage: 97kB
+                           Buffers: shared hit=2567
+                           ->  Nested Loop  (cost=91.38..181.57 rows=1 width=8) (actual time=1.208..4.588 rows=476 loops=1)
+                                 Buffers: shared hit=2567
+                                 ->  Bitmap Heap Scan on place pl  (cost=91.08..173.25 rows=1 width=8) (actual time=1.199..2.198 rows=476 loops=1)
+                                       Recheck Cond: ((location)::geometry && '0103000020E6100000010000000500000015E3AB83A1C05F40C90ADEAF0ABE424015E3AB83A1C05F400F4A77B883C1424099193B0CCEC25F400F4A77B883C1424099193B0CCEC25F40C90ADEAF0ABE424015E3AB83A1C05F40C90ADEAF0ABE4240'::geometry)
+                                       Filter: st_dwithin(location, '0101000020E6100000577EF3C7B7C15F406CAA2A34C7BF4240'::geography, '1500'::double precision, true)
+                                       Rows Removed by Filter: 103
+                                       Heap Blocks: exact=1085
+                                       Buffers: shared hit=1139
+                                       ->  BitmapAnd  (cost=91.08..91.08 rows=5 width=0) (actual time=0.672..0.673 rows=0 loops=1)
+                                             Buffers: shared hit=54
+                                             ->  Bitmap Index Scan on idx_place_location_geom_gist  (cost=0.00..32.73 rows=593 width=0) (actual time=0.246..0.247 rows=1190 loops=1)
+                                                   Index Cond: ((location)::geometry && '0103000020E6100000010000000500000015E3AB83A1C05F40C90ADEAF0ABE424015E3AB83A1C05F400F4A77B883C1424099193B0CCEC25F400F4A77B883C1424099193B0CCEC25F40C90ADEAF0ABE424015E3AB83A1C05F40C90ADEAF0ABE4240'::geometry)
+                                                   Buffers: shared hit=15
+                                             ->  Bitmap Index Scan on idx_place_location_gist  (cost=0.00..58.11 rows=760 width=0) (actual time=0.401..0.401 rows=1586 loops=1)
+                                                   Index Cond: (location && _st_expand('0101000020E6100000577EF3C7B7C15F406CAA2A34C7BF4240'::geography, '1500'::double precision))
+                                                   Buffers: shared hit=39
+                                 ->  Index Scan using idx_pin_place_id on pin p  (cost=0.29..8.31 rows=1 width=16) (actual time=0.005..0.005 rows=1 loops=476)
+                                       Index Cond: (place_id = pl.id)
+                                       Buffers: shared hit=1428
+                     ->  Index Scan using course_pkey on course c  (cost=0.29..0.46 rows=1 width=8) (actual time=0.003..0.003 rows=1 loops=473)
+                           Index Cond: (id = p.course_id)
+                           Filter: is_public
+                           Buffers: shared hit=1419
+               ->  Aggregate  (cost=8.39..8.40 rows=1 width=8) (actual time=0.004..0.004 rows=1 loops=473)
+                     Buffers: shared hit=1329
+                     ->  Index Only Scan using idx_course_comment_course_id on course_comment cc  (cost=0.29..8.38 rows=5 width=0) (actual time=0.003..0.004 rows=3 loops=473)
+                           Index Cond: (course_id = c.id)
+                           Heap Fetches: 1589
+                           Buffers: shared hit=1329
+ Planning:
+   Buffers: shared hit=199 read=3 dirtied=1
+ Planning Time: 2.246 ms
+ Execution Time: 8.292 ms
+(47 rows)
+

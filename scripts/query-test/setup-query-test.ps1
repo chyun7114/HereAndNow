@@ -15,7 +15,9 @@ $MigrationFiles = @(
     "/workspace/src/main/resources/db/migration/V2_2__add_key_constraint_couple_course_comment.sql",
     "/workspace/src/main/resources/db/migration/V2_3__add_key_constraints_pin_image.sql",
     "/workspace/src/main/resources/db/migration/V2_4__add_key_contraints_pin_tag.sql",
-    "/workspace/src/main/resources/db/migration/V2__add_key_constraint_course.sql"
+    "/workspace/src/main/resources/db/migration/V2__add_key_constraint_course.sql",
+    "/workspace/src/main/resources/db/migration/V3__add_place_location_geometry_gist_index.sql",
+    "/workspace/src/main/resources/db/migration/V4__add_query_optimization_indexes.sql"
 )
 
 function Invoke-Psql([string]$SqlCommand) {

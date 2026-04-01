@@ -47,6 +47,13 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
                         SELECT 1 FROM pin p
                         JOIN place pl ON p.place_id = pl.id
                         WHERE p.course_id = c.id
+                        AND pl.location::geometry && ST_MakeEnvelope(
+                            ST_X(CAST(:point AS geometry)) - (1500.0 / (111320.0 * GREATEST(COS(RADIANS(ST_Y(CAST(:point AS geometry)))), 0.01))),
+                            ST_Y(CAST(:point AS geometry)) - (1500.0 / 110574.0),
+                            ST_X(CAST(:point AS geometry)) + (1500.0 / (111320.0 * GREATEST(COS(RADIANS(ST_Y(CAST(:point AS geometry)))), 0.01))),
+                            ST_Y(CAST(:point AS geometry)) + (1500.0 / 110574.0),
+                            4326
+                        )
                         AND ST_DWithin(pl.location, :point, 1500)
                     )
                     """,
@@ -57,6 +64,13 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
                         SELECT 1 FROM pin p
                         JOIN place pl ON p.place_id = pl.id
                         WHERE p.course_id = c.id
+                        AND pl.location::geometry && ST_MakeEnvelope(
+                            ST_X(CAST(:point AS geometry)) - (1500.0 / (111320.0 * GREATEST(COS(RADIANS(ST_Y(CAST(:point AS geometry)))), 0.01))),
+                            ST_Y(CAST(:point AS geometry)) - (1500.0 / 110574.0),
+                            ST_X(CAST(:point AS geometry)) + (1500.0 / (111320.0 * GREATEST(COS(RADIANS(ST_Y(CAST(:point AS geometry)))), 0.01))),
+                            ST_Y(CAST(:point AS geometry)) + (1500.0 / 110574.0),
+                            4326
+                        )
                         AND ST_DWithin(pl.location, :point, 1500)
                     )
                     """,
@@ -66,17 +80,31 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
 
     @Query(
             value = """
-                    SELECT c.id FROM course c
-                    LEFT JOIN course_comment cc ON cc.course_id = c.id
-                    WHERE c.is_public = true
-                    AND EXISTS (
-                        SELECT 1 FROM pin p
-                        JOIN place pl ON p.place_id = pl.id
-                        WHERE p.course_id = c.id
-                        AND ST_DWithin(pl.location, :point, 1500)
+                    WITH nearby_course AS (
+                        SELECT c.id FROM course c
+                        WHERE c.is_public = true
+                        AND EXISTS (
+                            SELECT 1 FROM pin p
+                            JOIN place pl ON p.place_id = pl.id
+                            WHERE p.course_id = c.id
+                            AND pl.location::geometry && ST_MakeEnvelope(
+                                ST_X(CAST(:point AS geometry)) - (1500.0 / (111320.0 * GREATEST(COS(RADIANS(ST_Y(CAST(:point AS geometry)))), 0.01))),
+                                ST_Y(CAST(:point AS geometry)) - (1500.0 / 110574.0),
+                                ST_X(CAST(:point AS geometry)) + (1500.0 / (111320.0 * GREATEST(COS(RADIANS(ST_Y(CAST(:point AS geometry)))), 0.01))),
+                                ST_Y(CAST(:point AS geometry)) + (1500.0 / 110574.0),
+                                4326
+                            )
+                            AND ST_DWithin(pl.location, :point, 1500)
+                        )
                     )
-                    GROUP BY c.id
-                    ORDER BY COUNT(cc.id) DESC, c.id DESC
+                    SELECT nc.id
+                    FROM nearby_course nc
+                    LEFT JOIN LATERAL (
+                        SELECT COUNT(*) AS comment_count
+                        FROM course_comment cc
+                        WHERE cc.course_id = nc.id
+                    ) comment_stat ON true
+                    ORDER BY COALESCE(comment_stat.comment_count, 0) DESC, nc.id DESC
                     """,
             countQuery = """
                     SELECT count(*) FROM course c
@@ -85,6 +113,13 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
                         SELECT 1 FROM pin p
                         JOIN place pl ON p.place_id = pl.id
                         WHERE p.course_id = c.id
+                        AND pl.location::geometry && ST_MakeEnvelope(
+                            ST_X(CAST(:point AS geometry)) - (1500.0 / (111320.0 * GREATEST(COS(RADIANS(ST_Y(CAST(:point AS geometry)))), 0.01))),
+                            ST_Y(CAST(:point AS geometry)) - (1500.0 / 110574.0),
+                            ST_X(CAST(:point AS geometry)) + (1500.0 / (111320.0 * GREATEST(COS(RADIANS(ST_Y(CAST(:point AS geometry)))), 0.01))),
+                            ST_Y(CAST(:point AS geometry)) + (1500.0 / 110574.0),
+                            4326
+                        )
                         AND ST_DWithin(pl.location, :point, 1500)
                     )
                     """,
@@ -116,3 +151,4 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
             countQuery = "SELECT COUNT(c) FROM Course c WHERE c.isPublic = true")
     Page<Course> findCoursesWithMember(Pageable pageable);
 }
+

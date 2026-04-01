@@ -1,0 +1,167 @@
+﻿============================================================
+SCENARIO:  10k_narrow
+BBOX    :  127.0154 , 37.4893  ~  127.0382 , 37.5073
+============================================================
+
+[PLACE][BASELINE] index drop + explain
+DROP INDEX
+ANALYZE
+                                                                                                                             QUERY PLAN                                                                                                                              
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=125813.00..125813.01 rows=1 width=8) (actual time=5.695..5.696 rows=1 loops=1)
+   Buffers: shared hit=688
+   ->  Seq Scan on place p  (cost=0.00..125813.00 rows=1 width=0) (actual time=3.547..5.683 rows=25 loops=1)
+         Filter: st_intersects((location)::geometry, '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry)
+         Rows Removed by Filter: 9975
+         Buffers: shared hit=688
+ Planning:
+   Buffers: shared hit=68
+ Planning Time: 0.421 ms
+ JIT:
+   Functions: 4
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 0.197 ms, Inlining 0.000 ms, Optimization 0.174 ms, Emission 3.166 ms, Total 3.537 ms
+ Execution Time: 19.149 ms
+(14 rows)
+
+
+[PLACE][CASE1_GIST] index create + explain
+CREATE INDEX
+ANALYZE
+                                                                                                                             QUERY PLAN                                                                                                                              
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=402.92..402.93 rows=1 width=8) (actual time=0.130..0.130 rows=1 loops=1)
+   Buffers: shared hit=25 read=3
+   ->  Bitmap Heap Scan on place p  (cost=4.34..402.86 rows=25 width=0) (actual time=0.090..0.126 rows=25 loops=1)
+         Filter: st_intersects((location)::geometry, '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry)
+         Heap Blocks: exact=25
+         Buffers: shared hit=25 read=3
+         ->  Bitmap Index Scan on idx_place_location_geom_gist  (cost=0.00..4.34 rows=25 width=0) (actual time=0.078..0.078 rows=25 loops=1)
+               Index Cond: ((location)::geometry && '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry)
+               Buffers: shared read=3
+ Planning:
+   Buffers: shared hit=27
+ Planning Time: 0.224 ms
+ Execution Time: 0.172 ms
+(13 rows)
+
+
+[PLACE][CASE2_GIST_MBR] explain
+                                                                                                                                                                                                                                                 QUERY PLAN                                                                                                                                                                                                                                                  
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=20.68..20.69 rows=1 width=8) (actual time=0.050..0.050 rows=1 loops=1)
+   Buffers: shared hit=28
+   ->  Index Scan using idx_place_location_geom_gist on place p  (cost=0.15..20.67 rows=1 width=0) (actual time=0.021..0.048 rows=25 loops=1)
+         Index Cond: (((location)::geometry && '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry) AND ((location)::geometry && '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry))
+         Filter: st_intersects((location)::geometry, '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry)
+         Buffers: shared hit=28
+ Planning Time: 0.094 ms
+ Execution Time: 0.060 ms
+(8 rows)
+
+
+[COURSE][BASELINE] index drop + explain
+DROP INDEX
+ANALYZE
+ANALYZE
+ANALYZE
+                                                                                                                                      QUERY PLAN                                                                                                                                       
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=126354.01..126354.01 rows=1 width=8) (actual time=38.115..38.117 rows=1 loops=1)
+   Buffers: shared hit=5086
+   ->  Nested Loop Semi Join  (cost=0.00..126354.00 rows=1 width=0) (actual time=33.385..38.098 rows=25 loops=1)
+         Join Filter: (c.id = p.course_id)
+         Rows Removed by Join Filter: 69675
+         Buffers: shared hit=5086
+         ->  Seq Scan on course c  (cost=0.00..101.00 rows=2800 width=8) (actual time=5.011..5.419 rows=2800 loops=1)
+               Filter: is_public
+               Buffers: shared hit=73
+         ->  Materialize  (cost=0.00..126211.01 rows=1 width=8) (actual time=0.000..0.011 rows=25 loops=2800)
+               Buffers: shared hit=5013
+               ->  Nested Loop  (cost=0.00..126211.00 rows=1 width=8) (actual time=0.200..28.260 rows=25 loops=1)
+                     Join Filter: (p.place_id = pl.id)
+                     Rows Removed by Join Filter: 249975
+                     Buffers: shared hit=5013
+                     ->  Seq Scan on place pl  (cost=0.00..125813.00 rows=1 width=8) (actual time=0.176..2.714 rows=25 loops=1)
+                           Filter: st_intersects((location)::geometry, '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry)
+                           Rows Removed by Filter: 9975
+                           Buffers: shared hit=688
+                     ->  Seq Scan on pin p  (cost=0.00..273.00 rows=10000 width=16) (actual time=0.001..0.412 rows=10000 loops=25)
+                           Buffers: shared hit=4325
+ Planning:
+   Buffers: shared hit=127 read=5
+ Planning Time: 0.445 ms
+ JIT:
+   Functions: 15
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 0.459 ms, Inlining 0.000 ms, Optimization 0.260 ms, Emission 4.783 ms, Total 5.502 ms
+ Execution Time: 38.671 ms
+(29 rows)
+
+
+[COURSE][CASE1_GIST] index create + explain
+CREATE INDEX
+ANALYZE
+                                                                                                                                      QUERY PLAN                                                                                                                                       
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=589.80..589.81 rows=1 width=8) (actual time=0.232..0.234 rows=1 loops=1)
+   Buffers: shared hit=175 read=3
+   ->  Nested Loop  (cost=579.01..589.74 rows=25 width=0) (actual time=0.186..0.231 rows=25 loops=1)
+         Buffers: shared hit=175 read=3
+         ->  HashAggregate  (cost=578.73..578.98 rows=25 width=8) (actual time=0.181..0.184 rows=25 loops=1)
+               Group Key: p.course_id
+               Batches: 1  Memory Usage: 24kB
+               Buffers: shared hit=100 read=3
+               ->  Nested Loop  (cost=4.63..578.67 rows=25 width=8) (actual time=0.074..0.175 rows=25 loops=1)
+                     Buffers: shared hit=100 read=3
+                     ->  Bitmap Heap Scan on place pl  (cost=4.34..402.86 rows=25 width=8) (actual time=0.068..0.105 rows=25 loops=1)
+                           Filter: st_intersects((location)::geometry, '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry)
+                           Heap Blocks: exact=25
+                           Buffers: shared hit=25 read=3
+                           ->  Bitmap Index Scan on idx_place_location_geom_gist  (cost=0.00..4.34 rows=25 width=0) (actual time=0.058..0.058 rows=25 loops=1)
+                                 Index Cond: ((location)::geometry && '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry)
+                                 Buffers: shared read=3
+                     ->  Index Scan using idx_pin_place_id on pin p  (cost=0.29..7.02 rows=1 width=16) (actual time=0.002..0.002 rows=1 loops=25)
+                           Index Cond: (place_id = pl.id)
+                           Buffers: shared hit=75
+         ->  Index Scan using course_pkey on course c  (cost=0.28..0.43 rows=1 width=8) (actual time=0.002..0.002 rows=1 loops=25)
+               Index Cond: (id = p.course_id)
+               Filter: is_public
+               Buffers: shared hit=75
+ Planning:
+   Buffers: shared hit=41
+ Planning Time: 0.378 ms
+ Execution Time: 0.275 ms
+(28 rows)
+
+
+[COURSE][CASE2_GIST_MBR] explain
+                                                                                                                                                                                                                                                          QUERY PLAN                                                                                                                                                                                                                                                           
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=29.43..29.44 rows=1 width=8) (actual time=0.121..0.121 rows=1 loops=1)
+   Buffers: shared hit=178
+   ->  Nested Loop  (cost=29.27..29.43 rows=1 width=0) (actual time=0.091..0.120 rows=25 loops=1)
+         Buffers: shared hit=178
+         ->  HashAggregate  (cost=28.99..29.00 rows=1 width=8) (actual time=0.088..0.090 rows=25 loops=1)
+               Group Key: p.course_id
+               Batches: 1  Memory Usage: 24kB
+               Buffers: shared hit=103
+               ->  Nested Loop  (cost=0.44..28.98 rows=1 width=8) (actual time=0.023..0.083 rows=25 loops=1)
+                     Buffers: shared hit=103
+                     ->  Index Scan using idx_place_location_geom_gist on place pl  (cost=0.15..20.67 rows=1 width=8) (actual time=0.018..0.040 rows=25 loops=1)
+                           Index Cond: (((location)::geometry && '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry) AND ((location)::geometry && '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry))
+                           Filter: st_intersects((location)::geometry, '0103000020E61000000100000005000000F0164850FCC05F4066F7E461A1BE4240F0164850FCC05F4062A1D634EFC0424043AD69DE71C25F4062A1D634EFC0424043AD69DE71C25F4066F7E461A1BE4240F0164850FCC05F4066F7E461A1BE4240'::geometry)
+                           Buffers: shared hit=28
+                     ->  Index Scan using idx_pin_place_id on pin p  (cost=0.29..8.30 rows=1 width=16) (actual time=0.001..0.001 rows=1 loops=25)
+                           Index Cond: (place_id = pl.id)
+                           Buffers: shared hit=75
+         ->  Index Scan using course_pkey on course c  (cost=0.28..0.43 rows=1 width=8) (actual time=0.001..0.001 rows=1 loops=25)
+               Index Cond: (id = p.course_id)
+               Filter: is_public
+               Buffers: shared hit=75
+ Planning:
+   Buffers: shared hit=22
+ Planning Time: 0.228 ms
+ Execution Time: 0.140 ms
+(25 rows)
+

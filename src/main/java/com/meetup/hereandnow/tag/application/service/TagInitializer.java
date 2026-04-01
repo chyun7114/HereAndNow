@@ -124,10 +124,16 @@ public class TagInitializer implements ApplicationListener<ContextRefreshedEvent
         if (tagValue != null) {
             return tagValue;
         }
+        TagValue existingTagValue = tagValueRepository.findByName(name).orElse(null);
+        if (existingTagValue != null) {
+            tagValueMap.put(name, existingTagValue);
+            return existingTagValue;
+        }
+
         TagValue newTagValue = TagValue.builder().name(name).build();
-        TagValue savedTag = tagValueRepository.save(newTagValue);
-        tagValueMap.put(name, savedTag);
-        return savedTag;
+        TagValue savedTagValue = tagValueRepository.save(newTagValue);
+        tagValueMap.put(name, savedTagValue);
+        return savedTagValue;
     }
 
     private void link(PlaceGroup placeGroup, TagGroup tagGroup, String... tagNames) {

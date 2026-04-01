@@ -27,15 +27,57 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, JpaSpecific
 
     // 주어진 lat, lon를 중심으로 반경 1.5km 내의 장소 목록을 조회
     @Query(
-            value = "SELECT * FROM place p WHERE ST_DWithin(p.location, ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, 1500)",
-            countQuery = "SELECT count(*) FROM place p WHERE ST_DWithin(p.location, ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, 1500)",
+            value = """
+                    SELECT * FROM place p
+                    WHERE p.location::geometry && ST_MakeEnvelope(
+                        :lon - (1500.0 / (111320.0 * GREATEST(COS(RADIANS(:lat)), 0.01))),
+                        :lat - (1500.0 / 110574.0),
+                        :lon + (1500.0 / (111320.0 * GREATEST(COS(RADIANS(:lat)), 0.01))),
+                        :lat + (1500.0 / 110574.0),
+                        4326
+                    )
+                    AND ST_DWithin(
+                        p.location,
+                        ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography,
+                        1500
+                    )
+                    """,
+            countQuery = """
+                    SELECT count(*) FROM place p
+                    WHERE p.location::geometry && ST_MakeEnvelope(
+                        :lon - (1500.0 / (111320.0 * GREATEST(COS(RADIANS(:lat)), 0.01))),
+                        :lat - (1500.0 / 110574.0),
+                        :lon + (1500.0 / (111320.0 * GREATEST(COS(RADIANS(:lat)), 0.01))),
+                        :lat + (1500.0 / 110574.0),
+                        4326
+                    )
+                    AND ST_DWithin(
+                        p.location,
+                        ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography,
+                        1500
+                    )
+                    """,
             nativeQuery = true
     )
     Page<Place> findPlacesByLocation(@Param("lat") double lat, @Param("lon") double lon, Pageable pageable);
 
     // 1.5km 내의 장소 id 목록 조회
     @Query(
-            value = "SELECT p.id FROM place p WHERE ST_DWithin(p.location, ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, 1500)",
+            value = """
+                    SELECT p.id FROM place p
+                    WHERE p.location::geometry && ST_MakeEnvelope(
+                        :lon - (1500.0 / (111320.0 * GREATEST(COS(RADIANS(:lat)), 0.01))),
+                        :lat - (1500.0 / 110574.0),
+                        :lon + (1500.0 / (111320.0 * GREATEST(COS(RADIANS(:lat)), 0.01))),
+                        :lat + (1500.0 / 110574.0),
+                        4326
+                    )
+                    AND ST_DWithin(
+                        p.location,
+                        ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography,
+                        1500
+                    )
+                    """,
             nativeQuery = true
     )
     List<Long> findNearbyPlaceIds(@Param("lat") double lat, @Param("lon") double lon);
