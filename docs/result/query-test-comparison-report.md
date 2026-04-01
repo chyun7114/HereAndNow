@@ -26,10 +26,10 @@
 ## 3. Place 통합 비교 (ms)
 
 | 시나리오 | 10k Baseline | 10k Case1 | 10k Case2 | 100k Baseline | 100k Case1 | 100k Case2 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 좁은 | 129.937 | 0.254 | 0.137 | 125.672 | 0.595 | 0.236 |
-| 일반 | 16.983 | 0.401 | 0.239 | 109.830 | 22.207 | 2.027 |
-| 넓은 | 27.117 | 0.961 | 0.475 | 111.402 | 30.647 | 4.232 |
+| -------- | -----------: | --------: | --------: | ------------: | ---------: | ---------: |
+| 좁은     |      129.937 |     0.254 |     0.137 |       125.672 |      0.595 |      0.236 |
+| 일반     |       16.983 |     0.401 |     0.239 |       109.830 |     22.207 |      2.027 |
+| 넓은     |       27.117 |     0.961 |     0.475 |       111.402 |     30.647 |      4.232 |
 
 핵심 해석:
 
@@ -42,10 +42,10 @@
 ## 4. Course 통합 비교 (ms)
 
 | 시나리오 | 10k Baseline | 10k Case1 | 10k Case2 | 100k Baseline | 100k Case1 | 100k Case2 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 좁은 | 41.299 | 0.291 | 0.171 | 560.320 | 2.377 | 1.831 |
-| 일반 | 199.219 | 1.696 | 0.722 | 2639.141 | 27.465 | 15.210 |
-| 넓은 | 618.473 | 2.279 | 2.795 | 7463.794 | 35.695 | 16.935 |
+| -------- | -----------: | --------: | --------: | ------------: | ---------: | ---------: |
+| 좁은     |       41.299 |     0.291 |     0.171 |       560.320 |      2.377 |      1.831 |
+| 일반     |      199.219 |     1.696 |     0.722 |      2639.141 |     27.465 |     15.210 |
+| 넓은     |      618.473 |     2.279 |     2.795 |      7463.794 |     35.695 |     16.935 |
 
 핵심 해석:
 
@@ -87,11 +87,10 @@
 ## 7. 원본 보고서 링크
 
 - 10k 메인 보고서:
-  - [query-test-final-report-10k.md](c:/Users/user/Desktop/HereAndNow/docs/result/query-test-final-report-10k.md)
+  - [query-test-final-report-10k.md](./query-test-report-10k.md)
 - 10k 실행계획 상세:
-  - [query-test-execution-plans-10k.md](c:/Users/user/Desktop/HereAndNow/docs/result/execution-report/query-test-execution-plans-10k.md)
+  - [query-test-execution-plans-10k.md](./execution-report/query-test-execution-plans-10k.md)
 - 100k 메인 보고서:
-  - [query-test-final-report-100k.md](c:/Users/user/Desktop/HereAndNow/docs/result/query-test-final-report-100k.md)
+  - [query-test-final-report-100k.md](./query-test-report-100k.md)
 - 100k 실행계획 상세:
-  - [query-test-execution-plans-100k.md](c:/Users/user/Desktop/HereAndNow/docs/result/execution-report/query-test-execution-plans-100k.md)
-
+  - [query-test-execution-plans-100k.md](./execution-report/query-test-execution-plans-100k.md)
